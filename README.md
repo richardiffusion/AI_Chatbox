@@ -1,4 +1,4 @@
-This is an easy and convenient Ai chatbox that you can connect to major ai models directly with an workable api.
+This is an easy and convenient Ai chatbox that you can connect to major ai models directly with a workable api.
 
 This project is based on React + Vite and JavaScript. Contact richard@richardiffusion.com for any questions related.
 

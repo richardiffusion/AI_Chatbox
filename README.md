@@ -11,14 +11,21 @@ This project is based on React + Vite and JavaScript. Contact richard@richardiff
 ## Installation and Operation
 
 1. Install Requirements
-'''bash
+
+''' bash
 npm install
+'''
 
 2. Development Commands
-npm run dev
 
+'''
+npm run dev
+'''
 3. Production Commands
+
+'''
 npm run build
+'''
 
 ## Environment Settings(API)
 Please check .env.example file

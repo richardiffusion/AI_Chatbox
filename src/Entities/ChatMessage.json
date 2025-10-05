@@ -1,0 +1,30 @@
+{
+  "name": "ChatMessage",
+  "type": "object",
+  "properties": {
+    "content": {
+      "type": "string",
+      "description": "The message content"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "user",
+        "assistant"
+      ],
+      "description": "Who sent the message"
+    },
+    "model": {
+      "type": "string",
+      "description": "Which AI model was used"
+    },
+    "conversation_id": {
+      "type": "string",
+      "description": "Groups messages in the same conversation"
+    }
+  },
+  "required": [
+    "content",
+    "role"
+  ]
+}

@@ -7,20 +7,18 @@ import ChatInput from "./Components/chat/ChatInput";
 import ChatHeader from "./Components/chat/ChatHeader";
 import { Loader2 } from "lucide-react";
 
-const MODEL_PROMPTS = {
-  deepseek: "You are DeepSeek, an AI assistant focused on deep reasoning and analytical thinking. Provide thorough, well-reasoned responses with clear logical steps.",
-  creative: "You are a creative writing assistant. Be imaginative, expressive, and engaging in your responses. Use vivid language and storytelling.",
-  technical: "You are a technical expert specializing in programming, engineering, and technology. Provide clear, practical solutions with code examples when relevant.",
-  general: "You are a helpful, friendly AI assistant. Provide balanced, informative responses to any questions.",
-};
 
-export default function ChatPage() {
+// 20251013：添加了参数{ initialMessage = "", onBackToHome }
+export default function ChatPage({ initialMessage = "", onBackToHome }) {
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedModel, setSelectedModel] = useState("general");
   const [conversationId, setConversationId] = useState(generateConversationId());
   const messagesEndRef = useRef(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+
+  // 20251013：添加 useRef 来跟踪是否已经自动发送过消息
+  const hasAutoSent = useRef(false);
 
   function generateConversationId() {
     return `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -50,6 +48,38 @@ export default function ChatPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
+//20251013：修改内容，自动发送首页信息
+  // 统一自动发送逻辑 - 替换原来的两个 useEffect
+  useEffect(() => {
+    // 只在消息列表为空且尚未自动发送时执行
+    if (messages.length === 0 && !hasAutoSent.current) {
+      const autoSendMessage = sessionStorage.getItem('autoSendMessage');
+      
+      // 优先使用 sessionStorage 中的消息
+      if (autoSendMessage) {
+        hasAutoSent.current = true; // 立即标记为已发送
+        console.log('Auto-sending message from homepage:', autoSendMessage);
+        sessionStorage.removeItem('autoSendMessage'); // 立即清除
+        
+        // 使用 setTimeout 确保状态更新完成
+        setTimeout(() => {
+          handleSend(autoSendMessage);
+        }, 100);
+      }
+      // 如果没有 sessionStorage 消息，但有 initialMessage，也发送
+      else if (initialMessage) {
+        hasAutoSent.current = true; // 立即标记为已发送
+        console.log('Auto-sending initial message:', initialMessage);
+        
+        // 使用 setTimeout 确保状态更新完成
+        setTimeout(() => {
+          handleSend(initialMessage);
+        }, 100);
+      }
+    }
+  }, [messages.length, initialMessage]); // 依赖项包括 messages.length 和 initialMessage
+
+
   const handleSend = async (content) => {
     if (!content.trim()) return;
 
@@ -65,21 +95,15 @@ export default function ChatPage() {
 
     setIsLoading(true);
 
+    //20251015修改，全部提示词逻辑都在后端处理
     try {
-      const conversationHistory = messages
-        .slice(-6)
-        .map((m) => `${m.role === "user" ? "User" : "Assistant"}: ${m.content}`)
-        .join("\n\n");
-
-      const systemPrompt = MODEL_PROMPTS[selectedModel] || MODEL_PROMPTS.general;
-      
-      const fullPrompt = conversationHistory
-        ? `${systemPrompt}\n\nConversation history:\n${conversationHistory}\n\nUser: ${content}\n\nAssistant:`
-        : `${systemPrompt}\n\nUser: ${content}\n\nAssistant:`;
-
+      // 注意：我们不再在前端构建提示词
+      // 完整的提示词构建现在由后端处理
       const response = await InvokeLLM({
-        prompt: fullPrompt,
+        prompt: content, // 只发送用户消息，提示词由后端添加
+        model: selectedModel,
       });
+    // 修改完毕
 
       const assistantMessage = {
         content: response,
@@ -108,6 +132,11 @@ export default function ChatPage() {
   const handleNewChat = () => {
     setConversationId(generateConversationId());
     setMessages([]);
+    // 20251014：重置自动发送标记 - 但只在没有待发送消息时
+    const autoSendMessage = sessionStorage.getItem('autoSendMessage');
+    if (!autoSendMessage && !initialMessage) {
+      hasAutoSent.current = false;
+    }
   };
 
   return (
@@ -115,6 +144,7 @@ export default function ChatPage() {
       <ChatHeader
         selectedModel={selectedModel}
         onNewChat={handleNewChat}
+        onBackToHome={onBackToHome} // 20251013：添加这个prop
         messageCount={messages.length}
       />
 

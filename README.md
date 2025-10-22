@@ -40,6 +40,10 @@ Please check .env.example file in backend folder
 ## Main Page
 <img width="1785" height="1834" alt="image" src="https://github.com/user-attachments/assets/b12e567d-0b55-4529-8bc4-3ba064b5993b" />
 
+### Customized Avatar
+v1.1.0 updated
+Now you can customize avatar in the frontend/image folder. Make sure to upload picture with name "avatar.jpg".
+
 ### Customized Response
 With default or customized model prompts, you can setup the model with own config answers.
 

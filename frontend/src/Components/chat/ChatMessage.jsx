@@ -3,6 +3,9 @@ import { motion } from "framer-motion";
 import { User, Sparkles } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 
+// Import avatar image
+import avatarImage from "@/image/avatar.jpg";
+
 export default function ChatMessage({ message, isLatest }) {
   const isUser = message.role === "user";
   
@@ -14,9 +17,14 @@ export default function ChatMessage({ message, isLatest }) {
       className={`flex gap-4 mb-6 ${isUser ? "justify-end" : "justify-start"}`}
     >
       {!isUser && (
-        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center shadow-lg">
-          <Sparkles className="w-5 h-5 text-white" />
-        </div>
+        // Modify here: Assistant message avatar
+        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center shadow-lg overflow-hidden border-2 border-white">
+          <img 
+            src={avatarImage} 
+            alt="AI Assistant" 
+            className="w-full h-full object-cover"
+          />
+         </div>
       )}
       
       <div className={`max-w-[75%] ${isUser ? "order-first" : ""}`}>

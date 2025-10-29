@@ -1,9 +1,14 @@
-const express = require('express');
-const cors = require('cors');
-const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
-const path = require('path'); // 添加 path 模块
-require('dotenv').config();
+import express from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import dotenv from 'dotenv';
+dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -62,8 +67,9 @@ app.use(express.static(frontendDistPath));
 //   }
 // }));
 
-// API路由
-app.use('/api/chat', require('./routes/chat'));
+// API路由 - 使用动态导入
+const chatRoutes = await import('./routes/chat.js');
+app.use('/api/chat', chatRoutes.default);
 
 // 健康检查端点
 app.get('/health', (req, res) => {
@@ -107,4 +113,4 @@ app.listen(PORT, () => {
   console.log(`📁 Serving static files from: ${frontendDistPath}`);
 });
 
-module.exports = app;
+export default app;

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { User, Sparkles } from "lucide-react";
 import ReactMarkdown from "react-markdown";
@@ -6,9 +6,32 @@ import ReactMarkdown from "react-markdown";
 // Import avatar image
 import avatarImage from "@/image/avatar.jpg";
 
-export default function ChatMessage({ message, isLatest }) {
+export default function ChatMessage({ message, isLatest, isStreaming }) {
   const isUser = message.role === "user";
-  
+  const [displayedContent, setDisplayedContent] = useState("");
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    // 重置显示内容当消息ID改变时
+    setDisplayedContent("");
+    setCurrentIndex(0);
+  }, [message.id]);
+
+  useEffect(() => {
+    if (isStreaming && message.content && currentIndex < message.content.length) {
+      const timer = setTimeout(() => {
+        setDisplayedContent(prev => prev + message.content[currentIndex]);
+        setCurrentIndex(prev => prev + 1);
+      }, isUser ? 0 : 20); // 用户消息立即显示，AI消息逐字显示
+
+      return () => clearTimeout(timer);
+    } else if (!isStreaming && displayedContent !== message.content) {
+      // 非流式模式下或流式结束时，确保显示完整内容
+      setDisplayedContent(message.content);
+      setCurrentIndex(message.content.length);
+    }
+  }, [message.content, currentIndex, isStreaming, isUser, displayedContent]);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -24,7 +47,7 @@ export default function ChatMessage({ message, isLatest }) {
             alt="AI Assistant" 
             className="w-full h-full object-cover"
           />
-         </div>
+        </div>
       )}
       
       <div className={`max-w-[75%] ${isUser ? "order-first" : ""}`}>
@@ -37,7 +60,7 @@ export default function ChatMessage({ message, isLatest }) {
         >
           <div className="prose prose-sm max-w-none">
             {isUser ? (
-              <p className="text-white mb-0">{message.content}</p>
+              <p className="text-white mb-0">{displayedContent}</p>
             ) : (
               <ReactMarkdown
                 components={{
@@ -57,14 +80,19 @@ export default function ChatMessage({ message, isLatest }) {
                     ),
                 }}
               >
-                {message.content}
+                {displayedContent}
               </ReactMarkdown>
             )}
           </div>
+          {/* 添加打字光标效果 */}
+          {isStreaming && isLatest && (
+            <span className="inline-block w-2 h-4 ml-1 bg-blue-500 animate-pulse" />
+          )}
         </div>
         {!isUser && message.model && (
           <div className="text-xs text-gray-400 mt-2 ml-1">
             {message.model}
+            {isStreaming && " · Typing..."}
           </div>
         )}
       </div>

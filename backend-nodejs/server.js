@@ -16,19 +16,6 @@ const PORT = process.env.PORT || 3001;
 // 静态文件目录路径
 const frontendDistPath = path.join(__dirname, '../frontend/dist');
 
-// 中间件 - 调整 helmet 配置，先定义为禁用 20251015 13:30pm
-// app.use(helmet({
-//   contentSecurityPolicy: {
-//     directives: {
-//       defaultSrc: ["'self'"],
-//       scriptSrc: ["'self'", "'unsafe-inline'"],
-//       styleSrc: ["'self'", "'unsafe-inline'"],
-//       imgSrc: ["'self'", "data:", "https:"],
-//     },
-//   },
-//   crossOriginEmbedderPolicy: false
-// }));
-
 // 完全禁用所有 helmet 安全头
 app.use(helmet({
   contentSecurityPolicy: false,
@@ -53,19 +40,6 @@ app.use('/api/', limiter);
 // 静态文件服务 - 必须放在路由之前
 console.log('静态文件目录:', frontendDistPath);
 app.use(express.static(frontendDistPath));
-
-// // 静态文件服务 - 必须放在路由之前
-// app.use(express.static(frontendDistPath, {
-//   index: false, // 禁用目录索引
-//   setHeaders: (res, filePath) => {
-//     // 设置正确的 MIME 类型
-//     if (filePath.endsWith('.js')) {
-//       res.setHeader('Content-Type', 'application/javascript');
-//     } else if (filePath.endsWith('.css')) {
-//       res.setHeader('Content-Type', 'text/css');
-//     }
-//   }
-// }));
 
 // API路由 - 使用动态导入
 const chatRoutes = await import('./routes/chat.js');

@@ -22,7 +22,7 @@ export default function HomePage({ onStartChat }) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 flex items-center justify-center p-4">
       <div className="max-w-4xl mx-auto text-center">
-        {/* 标题区域 */}
+        {/* Title Area */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -43,7 +43,7 @@ export default function HomePage({ onStartChat }) {
           </p>
         </motion.div>
 
-        {/* 特性介绍 */}
+        {/* Feature Introduction */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

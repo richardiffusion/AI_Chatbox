@@ -14,7 +14,7 @@ export default function ChatHeader({ selectedModel, onNewChat, onBackToHome, mes
     <div className="border-b border-gray-200 bg-white/90 backdrop-blur-lg px-6 py-4 shadow-sm">
       <div className="max-w-4xl mx-auto flex items-center justify-between">
         <div className="flex items-center gap-4">
-          {/* 返回首页按钮 */}
+          {/* Back to Home button */}
           <Button
             variant="outline"
             onClick={onBackToHome}

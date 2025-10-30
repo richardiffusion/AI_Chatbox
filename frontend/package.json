@@ -1,6 +1,6 @@
 {
-  "name": "ai-chat-app",
-  "version": "1.0.0",
+  "name": "ai_chatbox_frontend",
+  "version": "1.3.0",
   "type": "module",
   "scripts": {
     "dev": "vite",

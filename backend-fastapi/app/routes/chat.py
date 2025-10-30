@@ -9,7 +9,7 @@ from app.core.config import settings
 
 router = APIRouter()
 
-# AI API 配置（与 Node.js 版本保持一致）
+# AI API configuration(same as Node.js version)
 AI_CONFIG = {
     "deepseek": {
         "url": settings.DEEPSEEK_API_URL,
@@ -44,7 +44,7 @@ AI_CONFIG = {
 }
 
 def get_model_prompts():
-    """获取模型提示词（与 Node.js 版本相同逻辑）"""
+    """Get model prompts from environment or use defaults"""
     env_prompts = {
         "deepseek": settings.DEEPSEEK_PROMPT,
         "creative": settings.CREATIVE_PROMPT,
@@ -76,7 +76,7 @@ async def stream_chat(request: dict):
             yield f"data: {json.dumps({'error': 'Prompt is required'})}\n\n"
         return StreamingResponse(error_stream(), media_type="text/event-stream")
 
-    # 检查模拟模式
+    # Check mock mode
     if settings.MOCK_MODE:
         print(f"🤖 Mock Stream Mode: Using model {model_type} to respond")
         
@@ -92,7 +92,7 @@ async def stream_chat(request: dict):
         async def mock_stream():
             words = list(response_text)
             for i, word in enumerate(words):
-                await asyncio.sleep(0.03)  # 模拟打字效果
+                await asyncio.sleep(0.03)  # Simulate typing effect
                 yield f"data: {json.dumps({'content': word, 'done': False})}\n\n"
             yield f"data: {json.dumps({'done': True, 'model': model_type, 'timestamp': datetime.now().isoformat()})}\n\n"
         
@@ -116,14 +116,14 @@ async def stream_chat(request: dict):
             yield f"data: {json.dumps({'error': f'API key for {model_type} is not configured', 'message': 'Please set MOCK_MODE=true or configure API keys in .env file'})}\n\n"
         return StreamingResponse(error_stream(), media_type="text/event-stream")
 
-    # 获取提示词
+    # Get prompts
     MODEL_PROMPTS = get_model_prompts()
     system_prompt = MODEL_PROMPTS.get(model_type, MODEL_PROMPTS["general"])
     full_prompt = f"{system_prompt}\n\nUser: {prompt}\n\nAssistant:"
 
     print(f"📝 Stream Mode: Prompt Used ({model_type}): {system_prompt[:100]}...")
 
-    # 流式请求到 AI API
+    # Stream Output AI API
     async def ai_stream():
         try:
             headers = {
@@ -179,7 +179,7 @@ async def stream_chat(request: dict):
 
 @router.post("/")
 async def chat(request: dict):
-    """非流式聊天接口"""
+    """Non-streaming chat interface"""
     print(f"🔧 Receive Chat Request: {request}")
     print(f"🔧 MOCK_MODE: {settings.MOCK_MODE}")
     print(f"🔧 NODE_ENV: {settings.NODE_ENV}")
@@ -192,7 +192,7 @@ async def chat(request: dict):
     if not prompt:
         raise HTTPException(status_code=400, detail="Prompt is required")
 
-    # 检查模拟模式
+    # Check mock mode
     if settings.MOCK_MODE:
         print(f"🤖 Mock Mode: Using model {model_type} to respond")
         mock_responses = {
@@ -202,7 +202,7 @@ async def chat(request: dict):
             "deepseek": f'🤔 DeepSeek analysis of "{prompt}": Let me answer this with logical reasoning...'
         }
         
-        await asyncio.sleep(1)  # 模拟处理时间
+        await asyncio.sleep(1)  # Simulate processing delay
         
         return {
             "response": mock_responses.get(model_type, mock_responses["general"]),
@@ -215,7 +215,7 @@ async def chat(request: dict):
     if not config:
         raise HTTPException(status_code=400, detail=f"Unsupported model: {model_type}")
 
-    # 检查 API 密钥
+    # Check API key
     if not config["key"] or "your_" in config["key"] or config["key"] == "your_deepseek_api_key_here":
         raise HTTPException(
             status_code=500,
@@ -225,7 +225,7 @@ async def chat(request: dict):
             }
         )
 
-    # 获取提示词
+    # Get prompts
     MODEL_PROMPTS = get_model_prompts()
     system_prompt = MODEL_PROMPTS.get(model_type, MODEL_PROMPTS["general"])
     full_prompt = f"{system_prompt}\n\nUser: {prompt}\n\nAssistant:"
@@ -278,7 +278,7 @@ async def chat(request: dict):
 
 @router.get("/models")
 async def get_models():
-    """获取可用模型"""
+    """Get available models"""
     if settings.MOCK_MODE:
         available_models = list(AI_CONFIG.keys())
     else:

@@ -12,12 +12,12 @@ export default function ChatPage({ initialMessage = "", onBackToHome }) {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedModel, setSelectedModel] = useState("general");
   const [conversationId, setConversationId] = useState(generateConversationId());
-  const [streamingMessageId, setStreamingMessageId] = useState(null); // 新增：跟踪流式消息
+  const [streamingMessageId, setStreamingMessageId] = useState(null); // New: Track streaming messages
   const messagesEndRef = useRef(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const hasAutoSent = useRef(false);
 
-  // 20251029:新增：跟踪当前会话的初始消息
+  // 20251029:added to manage initialMessage state
   const [currentInitialMessage, setCurrentInitialMessage] = useState(initialMessage);
 
   function generateConversationId() {
@@ -48,17 +48,17 @@ export default function ChatPage({ initialMessage = "", onBackToHome }) {
   };
 
   const handleNewChat = () => {
-    // 重置所有状态
+    // Reset all states
     const newConversationId = generateConversationId();
     setConversationId(newConversationId);
     setMessages([]);
     setStreamingMessageId(null);
     
-    // 关键：重置初始消息状态
+    // Reset initial message state
     setCurrentInitialMessage('');
     hasAutoSent.current = false;
-    
-    // 清除 sessionStorage 中的自动发送消息
+
+    // Clear auto-send message from sessionStorage
     sessionStorage.removeItem('autoSendMessage');
     
     console.log('🆕 New chat started with clean state');
@@ -86,7 +86,7 @@ const handleStreamResponse = async (content, modelType) => {
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
     
-    // 创建初始消息
+    // Create initial message
     const initialMessage = {
       content: '',
       role: 'assistant',
@@ -101,7 +101,7 @@ const handleStreamResponse = async (content, modelType) => {
 
     let accumulatedContent = '';
     let buffer = '';
-    let streamCompleted = false; // 新增：标记流是否正常完成
+    let streamCompleted = false; // Track if stream completed successfully
 
     try {
       while (true) {
@@ -113,7 +113,7 @@ const handleStreamResponse = async (content, modelType) => {
           break;
         }
 
-        // 解码数据
+        // Decode data
         buffer += decoder.decode(value, { stream: true });
         const lines = buffer.split('\n');
         buffer = lines.pop() || '';
@@ -129,14 +129,14 @@ const handleStreamResponse = async (content, modelType) => {
 
               if (data.error) {
                 console.error('❌ Stream error:', data.error);
-                throw new Error(data.error); // 抛出错误让外层catch处理
+                throw new Error(data.error); // throw to outer catch
               }
 
               if (data.content) {
                 accumulatedContent += data.content;
                 console.log('📝 Accumulated content:', accumulatedContent);
-                
-                // 更新UI
+
+                // Update UI
                 setMessages(prev => prev.map(msg => 
                   msg.id === savedMessage.id 
                     ? { ...msg, content: accumulatedContent }
@@ -148,7 +148,7 @@ const handleStreamResponse = async (content, modelType) => {
                 console.log('🎯 Receive done signal, stream transmission ended');
                 streamCompleted = true;
                 
-                // 立即更新数据库并返回
+                // Final update to database
                 try {
                   await ChatMessage.update(savedMessage.id, { 
                     content: accumulatedContent 
@@ -156,11 +156,11 @@ const handleStreamResponse = async (content, modelType) => {
                   console.log('💾 Database updated successfully');
                 } catch (dbError) {
                   console.error('❌ Database update failed:', dbError);
-                  // 数据库错误不影响前端显示，只是不持久化
+                  // Database errors do not affect front-end display, just not persisted
                 }
                 
                 setStreamingMessageId(null);
-                return; // 直接返回，不继续循环
+                return; // Directly return, do not continue loop
               }
             } catch (e) {
               console.warn('⚠️ Warning:', e, 'Data:', line);
@@ -169,7 +169,7 @@ const handleStreamResponse = async (content, modelType) => {
         }
       }
 
-      // 如果循环正常结束（没有收到done标记），确保更新数据库
+      // Final database update if stream completed
       if (streamCompleted && accumulatedContent) {
         try {
           await ChatMessage.update(savedMessage.id, { 
@@ -183,7 +183,7 @@ const handleStreamResponse = async (content, modelType) => {
 
     } catch (innerError) {
       console.error('❌ Stream reading internal error:', innerError);
-      throw innerError; // 重新抛出让外层catch处理
+      throw innerError; // throw to outer catch
     } finally {
       setStreamingMessageId(null);
     }
@@ -192,7 +192,7 @@ const handleStreamResponse = async (content, modelType) => {
     console.error('❌ Stream processing external error:', error);
     setStreamingMessageId(null);
     
-    // 只有真正的网络错误才显示错误消息
+    // Handle network errors specifically
     if (error.message.includes('HTTP error') || error.message.includes('Failed to fetch')) {
       const errorMessage = {
         content: "I apologize, but there was a network error while receiving the response. Please try again.",
@@ -203,7 +203,7 @@ const handleStreamResponse = async (content, modelType) => {
       const savedErrorMessage = await ChatMessage.create(errorMessage);
       setMessages(prev => [...prev, savedErrorMessage]);
     } else {
-      // 其他错误（如API错误）已经在流式处理中显示了，不需要重复显示
+      // Other errors are already handled in the streaming process
       console.log('⚠️ Non-network error, already handled in streaming process');
     }
   }
@@ -226,7 +226,7 @@ const handleStreamResponse = async (content, modelType) => {
     setIsLoading(true);
 
     try {
-      // 使用流式接口替代原来的 InvokeLLM
+      // Use streaming API
       await handleStreamResponse(content, selectedModel);
     } catch (error) {
       console.error("Error getting AI response:", error);
@@ -244,7 +244,7 @@ const handleStreamResponse = async (content, modelType) => {
     }
   };
 
-  // 修改后的自动发送逻辑：使用 currentInitialMessage 而不是 props.initialMessage
+  // Modified auto-send logic: use currentInitialMessage instead of props.initialMessage
   useEffect(() => {
     if (messages.length === 0 && !hasAutoSent.current) {
       const autoSendMessage = sessionStorage.getItem('autoSendMessage');
@@ -269,11 +269,11 @@ const handleStreamResponse = async (content, modelType) => {
     }
   }, [messages.length, currentInitialMessage]);
 
-  // 新增：当 props.initialMessage 变化时更新 currentInitialMessage
+  // added to watch for changes in initialMessage prop
   useEffect(() => {
     if (initialMessage && initialMessage !== currentInitialMessage) {
       setCurrentInitialMessage(initialMessage);
-      // 重置自动发送状态，允许新消息被自动发送
+      // Reset auto-send status to allow new message to be auto-sent
       hasAutoSent.current = false;
     }
   }, [initialMessage]);
@@ -313,7 +313,7 @@ const handleStreamResponse = async (content, modelType) => {
                   key={message.id}
                   message={message}
                   isLatest={index === messages.length - 1}
-                  isStreaming={message.id === streamingMessageId} // 传递流式状态
+                  isStreaming={message.id === streamingMessageId} // Pass streaming status
                 />
               ))}
               {isLoading && !streamingMessageId && (

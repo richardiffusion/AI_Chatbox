@@ -12,7 +12,7 @@ export default function ChatMessage({ message, isLatest, isStreaming }) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
-    // 重置显示内容当消息ID改变时
+    // Reset displayed content when message changes
     setDisplayedContent("");
     setCurrentIndex(0);
   }, [message.id]);
@@ -22,11 +22,11 @@ export default function ChatMessage({ message, isLatest, isStreaming }) {
       const timer = setTimeout(() => {
         setDisplayedContent(prev => prev + message.content[currentIndex]);
         setCurrentIndex(prev => prev + 1);
-      }, isUser ? 0 : 20); // 用户消息立即显示，AI消息逐字显示
+      }, isUser ? 0 : 20); // User messages are displayed immediately, AI messages are displayed character by character
 
       return () => clearTimeout(timer);
     } else if (!isStreaming && displayedContent !== message.content) {
-      // 非流式模式下或流式结束时，确保显示完整内容
+      // In non-streaming mode or when streaming ends, ensure the full content is displayed
       setDisplayedContent(message.content);
       setCurrentIndex(message.content.length);
     }
@@ -84,7 +84,7 @@ export default function ChatMessage({ message, isLatest, isStreaming }) {
               </ReactMarkdown>
             )}
           </div>
-          {/* 添加打字光标效果 */}
+          {/* Add typing cursor effect */}
           {isStreaming && isLatest && (
             <span className="inline-block w-2 h-4 ml-1 bg-blue-500 animate-pulse" />
           )}

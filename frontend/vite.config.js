@@ -15,15 +15,15 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: false,
-    // 强制 CSS 代码分割
+    // force CSS code splitting
     cssCodeSplit: true,
-    // 禁用 CSS 内联到 JS
+    // Disable CSS inline to JS
     cssMinify: true,
-    // 设置资源内联限制为 0，强制所有资源都作为文件输出
+    // Set asset inline limit to 0, forcing all assets to be output as files
     assetsInlineLimit: 0,
     rollupOptions: {
       output: {
-        // 确保 CSS 被提取为独立文件
+        // Ensure CSS is extracted as separate files
         assetFileNames: (assetInfo) => {
           const extType = assetInfo.name.split('.')[1];
           if (/css/i.test(extType)) {

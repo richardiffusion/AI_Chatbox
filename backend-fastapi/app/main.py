@@ -8,7 +8,7 @@ import os
 from app.core.config import settings
 from app.routes.chat import router as chat_router
 
-# 获取前端静态文件路径
+# get project root and frontend dist path
 current_dir = Path(__file__).parent
 project_root = current_dir.parent.parent
 frontend_dist_path = project_root / "frontend" / "dist"
@@ -19,34 +19,34 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# CORS 配置
+# CORS configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # 为了兼容性，允许所有来源
+    allow_origins=["*"],  # For development, allow all origins
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# 挂载静态文件
+# Mount static files
 if frontend_dist_path.exists():
     app.mount("/static", StaticFiles(directory=frontend_dist_path), name="static")
     print(f"📁 Serving static files from: {frontend_dist_path}")
 
-# 包含路由
+# Include routes
 app.include_router(chat_router, prefix="/api/chat")
 
 @app.get("/health")
 async def health_check():
     return {
         "status": "OK",
-        "timestamp": "2024-01-01T00:00:00Z",  # 稍后替换为动态时间
+        "timestamp": "2024-01-01T00:00:00Z",  # Later replace with dynamic time
         "environment": settings.NODE_ENV
     }
 
 @app.get("/")
 async def serve_frontend():
-    """服务前端应用"""
+    """Serve frontend application"""
     index_path = frontend_dist_path / "index.html"
     if index_path.exists():
         return FileResponse(index_path)
@@ -54,17 +54,17 @@ async def serve_frontend():
 
 @app.get("/{full_path:path}")
 async def catch_all(full_path: str):
-    """捕获所有路由并返回前端应用（用于 SPA）"""
-    # 排除 API 路由
+    """Catch all routes and return frontend app (for SPA)"""
+    # Exclude API routes
     if full_path.startswith("api/"):
         return {"error": "API route not found"}
-    
-    # 如果请求的是静态文件且存在，返回文件
+
+    # If the request is for a static file and it exists, return the file
     static_file_path = frontend_dist_path / full_path
     if static_file_path.exists() and static_file_path.is_file():
         return FileResponse(static_file_path)
-    
-    # 否则返回前端应用
+
+    # Otherwise return the frontend app
     index_path = frontend_dist_path / "index.html"
     if index_path.exists():
         return FileResponse(index_path)

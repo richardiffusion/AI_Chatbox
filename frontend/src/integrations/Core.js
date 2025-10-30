@@ -1,7 +1,7 @@
-// API 基础 URL - 从环境变量读取
+// API base URL configuration
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
 
-// 在您的 integrations/Core.js 中添加流式支持
+// Add streaming support in integrations/Core.js
 export const InvokeLLMStream = async ({ prompt, model }) => {
   try {
     const response = await fetch('/api/chat/stream', {
@@ -19,7 +19,7 @@ export const InvokeLLMStream = async ({ prompt, model }) => {
       throw new Error('Stream request failed');
     }
 
-    return response; // 返回原始的response对象供处理
+    return response; // Return the original response object for further processing
   } catch (error) {
     console.error('Stream API Error:', error);
     throw error;
@@ -43,7 +43,7 @@ export const InvokeLLM = async ({ prompt, model = 'general' }) => {
       })
     });
 
-    // 20251015修改调用log
+    // Log response status
     console.log('📨 Response Status:', response.status);
 
     if (!response.ok) {
@@ -61,9 +61,8 @@ export const InvokeLLM = async ({ prompt, model = 'general' }) => {
     throw error;
   }
 };
-// 修改完毕
 
-// 获取可用模型
+// Get available models
 export const GetAvailableModels = async () => {
   try {
     const response = await fetch(`${API_BASE_URL}/chat/models`);

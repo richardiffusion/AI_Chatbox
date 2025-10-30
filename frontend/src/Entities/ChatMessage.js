@@ -1,6 +1,6 @@
 export class ChatMessage {
   static async create(messageData) {
-    // 模拟保存到本地存储
+    // simulate database auto-generated fields
     const message = {
       id: Date.now().toString(),
       created_date: new Date().toISOString(),
@@ -16,16 +16,16 @@ export class ChatMessage {
 
   static async filter(filters = {}, sortBy = 'created_date', limit = 100) {
     let messages = JSON.parse(localStorage.getItem('chatMessages') || '[]')
-    
-    // 应用过滤器
+
+    // Apply filters
     if (filters.conversation_id) {
       messages = messages.filter(msg => msg.conversation_id === filters.conversation_id)
     }
-    
-    // 排序
+
+    // Sort
     messages.sort((a, b) => new Date(b[sortBy]) - new Date(a[sortBy]))
     
-    // 限制数量
+    // Limit
     return messages.slice(0, limit)
   }
 }
